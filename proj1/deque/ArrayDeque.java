@@ -18,10 +18,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         nextLast = 1;
     }
 
-    public int getOne(int index) {
+    private int getOne(int index) {
         return (index + 1) % items.length;
     }
-    public int getBack(int index) {
+
+    private int getBack(int index) {
         return (index + items.length - 1) % items.length;
     }
 
@@ -199,4 +200,3 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return true;
     }
 }
-
