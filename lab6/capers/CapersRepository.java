@@ -4,9 +4,9 @@ import java.io.File;
 import static capers.Utils.*;
 
 /** A repository for Capers 
- * @author TODO
+ * @author Yeelight
  * The structure of a Capers Repository is as follows:
- *
+ * <p>
  * .capers/ -- top level folder for all persistent data in your lab12 folder
  *    - dogs/ -- folder containing all of the persistent data for dogs
  *    - story -- file containing the current story
@@ -18,20 +18,23 @@ public class CapersRepository {
     static final File CWD = new File(System.getProperty("user.dir"));
 
     /** Main metadata folder. */
-    static final File CAPERS_FOLDER = null; // TODO Hint: look at the `join`
-                                            //      function in Utils
+    static final File CAPERS_FOLDER = Utils.join(CWD, ".capers");
+    // FILE: story
+    static final File STORY_FOLDER = Utils.join(CAPERS_FOLDER, "story");
+
 
     /**
      * Does required filesystem operations to allow for persistence.
      * (creates any necessary folders or files)
      * Remember: recommended structure (you do not have to follow):
-     *
+     * <p>
      * .capers/ -- top level folder for all persistent data in your lab12 folder
-     *    - dogs/ -- folder containing all of the persistent data for dogs
+     *    - dogs/ -- folder containing all the persistent data for dogs
      *    - story -- file containing the current story
      */
     public static void setupPersistence() {
-        // TODO
+        CAPERS_FOLDER.mkdir();
+        Dog.DOG_FOLDER.mkdir();
     }
 
     /**
@@ -40,7 +43,15 @@ public class CapersRepository {
      * @param text String of the text to be appended to the story
      */
     public static void writeStory(String text) {
-        // TODO
+        String newText;
+        if (!STORY_FOLDER.exists()) {
+            newText = text;
+        } else {
+            String oldText = readContentsAsString(STORY_FOLDER);
+            newText = oldText + "\n" + text;
+        }
+        writeContents(STORY_FOLDER, newText);
+        System.out.println(newText);
     }
 
     /**
