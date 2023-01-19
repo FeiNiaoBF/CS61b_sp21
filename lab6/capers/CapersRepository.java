@@ -3,7 +3,7 @@ package capers;
 import java.io.File;
 import static capers.Utils.*;
 
-/** A repository for Capers 
+/** A repository for Capers
  * @author Yeelight
  * The structure of a Capers Repository is as follows:
  * <p>
@@ -60,7 +60,9 @@ public class CapersRepository {
      * Also prints out the dog's information using toString().
      */
     public static void makeDog(String name, String breed, int age) {
-        // TODO
+        Dog dog = new Dog(name, breed, age);
+        dog.saveDog();
+        System.out.println(dog.toString());
     }
 
     /**
@@ -70,6 +72,8 @@ public class CapersRepository {
      * @param name String name of the Dog whose birthday we're celebrating.
      */
     public static void celebrateBirthday(String name) {
-        // TODO
+        Dog dogBirthday = Dog.fromFile(name);
+        dogBirthday.haveBirthday();
+        dogBirthday.saveDog();
     }
 }
