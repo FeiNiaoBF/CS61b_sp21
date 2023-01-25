@@ -1,6 +1,6 @@
 package hashmap;
 
-import java.util.Collection;
+import java.util.*;
 
 /**
  *  A hash table-backed Map implementation. Provides amortized constant time
@@ -28,11 +28,18 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     /* Instance Variables */
     private Collection<Node>[] buckets;
     // You should probably define some more!
+    private int size;
+    private double loadFactor;
+
 
     /** Constructors */
-    public MyHashMap() { }
+    public MyHashMap() {
+        this(16, 0.75);
+    }
 
-    public MyHashMap(int initialSize) { }
+    public MyHashMap(int initialSize) {
+        this(initialSize, 0.75);
+    }
 
     /**
      * MyHashMap constructor that creates a backing array of initialSize.
@@ -41,13 +48,17 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * @param initialSize initial size of backing array
      * @param maxLoad maximum load factor
      */
-    public MyHashMap(int initialSize, double maxLoad) { }
+    public MyHashMap(int initialSize, double maxLoad) {
+        buckets = createTable(initialSize);
+        loadFactor = maxLoad;
+        size = 0;
+    }
 
     /**
      * Returns a new node to be placed in a hash table bucket
      */
     private Node createNode(K key, V value) {
-        return null;
+        return new Node(key, value);
     }
 
     /**
@@ -69,7 +80,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * OWN BUCKET DATA STRUCTURES WITH THE NEW OPERATOR!
      */
     protected Collection<Node> createBucket() {
-        return null;
+        return new LinkedList<>();
     }
 
     /**
@@ -82,10 +93,157 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * @param tableSize the size of the table to create
      */
     private Collection<Node>[] createTable(int tableSize) {
+        Collection<Node>[] table = new Collection[tableSize];
+        for (int i = 0; i < tableSize; i += 1) {
+            table[i] = createBucket();
+        }
+        return table;
+    }
+
+    @Override
+    public void clear() {
+        buckets = createTable(16);
+        size = 0;
+        loadFactor = 0.0;
+    }
+
+    @Override
+    public boolean containsKey(K key) {
+        if (key == null) throw new IllegalArgumentException("argument to contains() is null");
+        return getNode(key) != null;
+    }
+
+    @Override
+    public V get(K key) {
+        Node node = getNode(key);
+        if (node == null) return null;
+        return node.value;
+    }
+
+    private Node getNode(K key) {
+        int index = hash(key);
+        return getNode(key, index);
+    }
+
+    private Node getNode(K key, int index) {
+        for (Node x : buckets[index]) {
+            if(x.key.equals(key)) {
+                return x;
+            }
+        }
         return null;
     }
 
-    // TODO: Implement the methods of the Map61B Interface below
-    // Your code won't compile until you do so!
 
+    @Override
+    public int size() {
+        return size;
+    }
+
+    @Override
+    public void put(K key, V value) {
+        Node node = getNode(key);
+        if (node != null) {
+            node.value = value;
+        } else {
+            int index = Math.floorMod(key.hashCode(), buckets.length);
+            buckets[index].add(createNode(key, value));
+            size += 1;
+            if ((double)size / buckets.length > loadFactor) {
+                resize(buckets.length * 2);
+            }
+        }
+    }
+
+    private void resize(int capacity) {
+        Collection<Node>[] resized = createTable(capacity);
+        for (Collection<Node> bucket : buckets) {
+            for (Node node : bucket) {
+                int hash = hash(node.key, resized);
+                resized[hash].add(node);
+            }
+        }
+        buckets = resized;
+    }
+
+    private int hash(K key) {
+        return hash(key, buckets);
+    }
+    private int hash(K key, Collection<Node>[] b) {
+        int hashCode = key.hashCode();
+        return Math.floorMod(hashCode, b.length);
+    }
+
+    @Override
+    public Set<K> keySet() {
+        Set<K> set = new HashSet<>();
+        for (Collection<Node> items : buckets) {
+            for (Node node : items) {
+                set.add(node.key);
+            }
+        }
+        return set;
+    }
+
+    @Override
+    public V remove(K key) {
+        int hash = hash(key);
+        Node x = getNode(key);
+        if (x == null) {
+            return null;
+        }
+        buckets[hash].remove(x);
+        size -= 1;
+        return x.value;
+    }
+
+    @Override
+    public V remove(K key, V value) {
+        int hash = hash(key);
+        Node x = getNode(key);
+        if (x == null || !x.value.equals(value)) {
+            return null;
+        }
+        buckets[hash].remove(x);
+        size -= 1;
+        return x.value;
+    }
+
+    public Iterator<K> iterator() {
+        return new MyHashMapIterator();
+    }
+
+    private class MyHashMapIterator implements Iterator<K> {
+        private final Iterator<Node> nodeIterator = new MyHashMapNodeIterator();
+
+        public boolean hasNext() {
+            return nodeIterator.hasNext();
+        }
+
+        public K next() {
+            return nodeIterator.next().key;
+        }
+    }
+
+    private class MyHashMapNodeIterator implements Iterator<Node> {
+        private final Iterator<Collection<Node>> bucketsIterator = Arrays.stream(buckets).iterator();
+        private Iterator<Node> currentBucketIterator;
+        private int nodesLeft = size;
+
+        public boolean hasNext() {
+            return nodesLeft > 0;
+        }
+
+        public Node next() {
+            if (currentBucketIterator == null || !currentBucketIterator.hasNext()) {
+                Collection<Node> currentBucket = bucketsIterator.next();
+                while (currentBucket.size() == 0) {
+                    currentBucket = bucketsIterator.next();
+                }
+                currentBucketIterator = currentBucket.iterator();
+            }
+            nodesLeft -= 1;
+            return currentBucketIterator.next();
+        }
+    }
 }
