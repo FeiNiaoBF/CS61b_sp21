@@ -13,14 +13,16 @@ public class Main {
     public static void main(String[] args) {
         String firstArg = args[0];
         switch(firstArg) {
-            case "init": {
+            case "init":
+                // java gitlet.Main init
                 validateNumArgs(args, 1);
                 Repository.init();
-            }
-
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
+                // java gitlet.Main add <FILENAME>
+                validateNumArgs(args, 2);
+                Repository.validateInit();
+                Repository.add(args[1]);
                 break;
         }
     }
