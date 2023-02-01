@@ -99,7 +99,7 @@ public class Repository {
         Commit initCommit = new Commit();
         createInitialCommit(initCommit);
         String IDC = initCommit.getID();
-        createBranch("haeds", IDC);
+        createBranch("heads", IDC);
         // update HEAD
         writeContents(HEAD, HEAD_BRANCH_REF_PREFIX + DEFAULT_BRANCH_NAME );
     }
@@ -229,7 +229,7 @@ public class Repository {
     private static File getBranchFile(String fileName) {
         // refs
         File file = null;
-        String[] tmp = fileName.split(":& ", 2);
+        String[] tmp = fileName.split(": ", 2);
         String[] branches = tmp[1].split("/");
         if (branches.length == 3) {
             file = join(GITLET_DIR, branches[0], branches[1], branches[2]);
@@ -244,11 +244,6 @@ public class Repository {
         File commit = join(objCommit, commitID);
         return readObject(commit, Commit.class);
     }
-
-
-
-
-
 
     private static String twoCommitId(String s) {
         return sha1(s).substring(0, 2);
