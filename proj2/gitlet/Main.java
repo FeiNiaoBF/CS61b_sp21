@@ -24,6 +24,24 @@ public class Main {
                 Repository.validateInit();
                 Repository.add(args[1]);
                 break;
+            case "commit":
+                // java gitlet.Main commit <message>
+                validateNumArgs(args, 2);
+                String message = args[1];
+                if (message.length() == 0) {
+                    System.out.println("Please enter a commit message.");
+                    System.exit(0);
+                }
+                Repository.commit(message);
+                break;
+            case "rm":
+                validateNumArgs(args, 2);
+                Repository.rm(args[1]);
+                break;
+            case "log":
+                validateNumArgs(args, 1);
+                Repository.log();
+                break;
         }
     }
 
@@ -36,7 +54,7 @@ public class Main {
      */
     public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
-            throw new RuntimeException("Incorrect operands.");
+            System.out.println("Incorrect operands.");
         }
     }
 }

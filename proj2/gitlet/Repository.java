@@ -3,8 +3,12 @@ package gitlet;
 import com.sun.java.accessibility.util.GUIInitializedListener;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.util.List;
 
 import static gitlet.Utils.*;
+import static gitlet.StageRepo.*;
+import static gitlet.Commit.*;
 
 
 
@@ -13,14 +17,14 @@ import static gitlet.Utils.*;
  * <p>
  *
  *        .gitlet:
- *            |--objects
+ *            |--objects*
  *            |     |--commit and blob
- *            |--refs
+ *            |--refs*
  *            |     |--heads
  *            |          |--master
  *            |--HEAD
- *            |--stage
- *            |--removestage
+ *            |--stage*
+ *            |--removestage*
  *            |...
  * <p>
  *
@@ -172,23 +176,24 @@ public class Repository {
         // 判断 commit和 stag area 里面是否有文件
         Commit head = getHeadCommit();
         StageRepo stag = getStage();
-        //
+        // 将 Commit & stage里面的文件id找出来
         String headId = head.getBlob().getOrDefault(filename, "");
         String stagFileId = stag.getAddBlob().getOrDefault(filename, "");
         /**
-         * 该文件的当前工作版本(add)与当前提交中的版本(commit)相同时，不要将其添加到暂存区，
+         * 该文件的当前工作版本(stageadd)与当前提交中的版本(commit)相同时，不要将其添加到暂存区，
          * 如果它已经存在，则将其从暂存区中删除。
          */
         // commit 里面有没有该文件
         if (blobId.equals(headId)) {
             // 有，不需要 add in stage
             if (!blobId.equals(stagFileId)) {
-                // del the file from staging
+                // 从 stage 里面删除文件
                 join(STAGE_DIR, stagFileId).delete();
                 stag.getAddBlob().remove(stagFileId);
                 stag.getRemovBlob().remove(filename);
                 StageRepo.writeStage(stag);
             }
+            // 没有
         } else if (!blobId.equals(stagFileId)) {
             // update staging
             // delete original, add the new version
@@ -202,9 +207,130 @@ public class Repository {
         }
     }
 
+    /**
+     *  java gitlet.Main commit <message>
+     *
+     */
+
+    public static void commit(String message) {
+        if (message.equals("")) {
+            exitFile("Please enter a commit message.");
+        }
+        Commit head = getHeadCommit();
+        updateCommit(message, List.of(head));
+    }
+
+    private static void updateCommit(String message, List<Commit> parent) {
+        // 检查暂缓区
+        StageRepo stage = getStage();
+        if (stage.isEmpty()) {
+            exitFile("No changes added to the commit.");
+        }
+        // 创建新提交点， 并更新
+        Commit c = new Commit(message, parent, stage);
+        // 将commit存入commits文件夹中.
+        createInitialCommit(c);
+        // 让当前branch指向新的commit.
+        String braName = getBranch();
+        File braFile = getBranchFile(braName);
+        writeContents(braFile, c.getID());
+        // 清除缓存区
+
+
+    }
+
+    /**
+     *  java gitlet.Main rm <FILENAME>
+     *
+     */
+
+    public static void rm(String filename) {
+        File file = join(CWD, filename);
+        Blob blob = new Blob(file);
+        String blobId = blob.getId();
+        // 如果在本地文件里面没有这个文件就退出
+        Commit head = getHeadCommit();
+        StageRepo stage = StageRepo.readStage();
+        String headId = head.getBlob().getOrDefault(filename, "");
+        String stagFileId = stage.getAddBlob().getOrDefault(filename, "");
+
+        if (headId.equals("") && stagFileId.equals("")) {
+            exitFile("No reason to remove the file.");
+        }
+        // 如果文件在 add 区域，则将其中缓存区删除；
+        if (!stagFileId.equals("")) {
+            stage.getAddBlob().remove(filename, blobId);
+        }
+        // 如果文件被当前commit跟踪，则将其存入stage for removal区域.
+        if (headId.equals(blobId)) {
+            restrictedDelete(file);
+        }
+        writeStage(stage);
+    }
 
 
 
+    /**
+     *  java gitlet.Main log
+     *
+     */
+
+    public static void log() {
+        Commit head = getHeadCommit();
+        StringBuilder logs = new StringBuilder();
+        while(head != null) {
+            logs.append(head.toString());
+            head = getOldCommit(head.oldId());
+        }
+        System.out.println(logs);
+    }
+
+    /**
+     * java gitlet.Main global-log
+     */
+    public static void globalLog() {
+        StringBuilder gLogs = new StringBuilder();
+        List<String> commitIds = plainFilenamesIn(OBJ_DIR);
+
+    }
+
+
+
+
+    private static Commit getOldCommit(String commitId) {
+        File file = getTwoC(commitId);
+        // 如果commit不存在
+        if (commitId.equals("") || !file.exists()) {
+            return null;
+        }
+        return readObject(file, Commit.class);
+    }
+
+    /**
+     *  取得 OBJ_DIR
+     *          |——twoFile
+     *          |     |——<commitId>
+     */
+    private static File getTwoC(String commitId) {
+        return join(OBJ_DIR, twoCommitId(commitId), commitId);
+    }
+
+
+//    private static Commit readCommit(File f) {
+//        if (!f.exists()) {
+//            return null;
+//        }
+//
+//        return readObject(f, Commit.class);
+//    }
+//
+//    private static void writeCommit(Commit commit) {
+//        File f = getTwoC(commit.getID());
+//        writeObject(f, commit);
+//    }
+
+
+    // 找到当前commit
     private static Commit getHeadCommit() {
         // 找到当前的分支。
         String headBra = getBranch();
@@ -222,6 +348,17 @@ public class Repository {
         return StageRepo.readStage();
     }
 
+//    private static void clearStage(Commit c, StageRepo stag) {
+//        File[] files = STAGE_DIR.listFiles();
+//        if (files == null) {
+//            return;
+//        }
+//        Blob blob = c.getBlob();
+//        stag.
+//
+//
+//    }
+
     private static String getBranch() {
         return readContentsAsString(HEAD);
     }
@@ -231,6 +368,9 @@ public class Repository {
         File file = null;
         String[] tmp = fileName.split(": ", 2);
         String[] branches = tmp[1].split("/");
+        if (branches.length == 2) {
+            file = join(GITLET_DIR, branches[0], branches[1]);
+        }
         if (branches.length == 3) {
             file = join(GITLET_DIR, branches[0], branches[1], branches[2]);
         }
@@ -239,9 +379,7 @@ public class Repository {
 
     private static Commit getCommitFromBranchFile(File file) {
         String commitID = readContentsAsString(file);
-        String twoId = twoCommitId(commitID);
-        File objCommit = join(OBJ_DIR, twoId);
-        File commit = join(objCommit, commitID);
+        File commit = getTwoC(commitID);
         return readObject(commit, Commit.class);
     }
 
@@ -254,7 +392,4 @@ public class Repository {
         System.out.println(s);
         System.exit(0);
     }
-
-
-
 }

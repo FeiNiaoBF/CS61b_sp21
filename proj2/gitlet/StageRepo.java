@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +35,16 @@ public class StageRepo implements Serializable {
         addBlob.put(filename, blobID);
         removBlob.add(filename);
     }
+
+    public boolean isEmpty() {
+        return addBlob.isEmpty() && removBlob.isEmpty();
+    }
+
+    public void clear() {
+        addBlob.clear();
+        removBlob.clear();
+    }
+
 
     public static void writeStage(StageRepo s) {
         writeObject(STAGE, s);
