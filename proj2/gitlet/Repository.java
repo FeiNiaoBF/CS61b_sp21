@@ -90,7 +90,7 @@ public class Repository {
      */
     public static void init() {
         if (validateFileDire(GITLET_DIR)) {
-            exitFile("A Gitlet version-control system already exists in the current directory");
+            exitFile("A Gitlet version-control system already exists in the current directory.");
         }
         // create directories
         GITLET_DIR.mkdir();
@@ -118,10 +118,8 @@ public class Repository {
      *   ...
      */
     private static void createInitialCommit(Commit commit) {
-        String fileID = twoCommitId(commit.getID());
-        File commitID = join(OBJ_DIR, fileID);
-        commitID.mkdir();
-        writeObject(join(commitID, commit.getID()), commit);
+        File commitID = join(OBJ_DIR, commit.getID());
+        writeObject(commitID, commit);
     }
 
     /**
@@ -148,7 +146,7 @@ public class Repository {
 
     public static void validateInit() {
         if (!validateFileDire(GITLET_DIR) && !validateFileDire(OBJ_DIR) && !validateFileDire(REFS_DIR) && !validateFileDire(REMOVES_DIR)) {
-            exitFile("A Gitlet version-control system already exists in the current directory");
+            exitFile("A Gitlet version-control system already exists in the current directory.");
         }
     }
 
@@ -280,7 +278,7 @@ public class Repository {
         StringBuilder logs = new StringBuilder();
         while(head != null) {
             logs.append(head.toString());
-            head = getOldCommit(head.oldId());
+            head = getCommitFromOBJ(head.oldId());
         }
         System.out.println(logs);
     }
@@ -291,14 +289,17 @@ public class Repository {
     public static void globalLog() {
         StringBuilder gLogs = new StringBuilder();
         List<String> commitIds = plainFilenamesIn(OBJ_DIR);
-
+        assert commitIds != null;
+        for (String filename : commitIds) {
+            Commit c = getCommitFromOBJ(filename);
+            assert c != null;
+            gLogs.append(c.toString());
+        }
+        System.out.println(gLogs.toString());
     }
 
-
-
-
-    private static Commit getOldCommit(String commitId) {
-        File file = getTwoC(commitId);
+    private static Commit getCommitFromOBJ(String commitId) {
+        File file = join(OBJ_DIR, commitId);
         // 如果commit不存在
         if (commitId.equals("") || !file.exists()) {
             return null;
@@ -306,16 +307,61 @@ public class Repository {
         return readObject(file, Commit.class);
     }
 
+
     /**
-     *  取得 OBJ_DIR
-     *          |——twoFile
-     *          |     |——<commitId>
+     * java gitlet.Main find <commit message>
      */
-    private static File getTwoC(String commitId) {
-        return join(OBJ_DIR, twoCommitId(commitId), commitId);
+    public static void find(String message) {
+        StringBuilder str = new StringBuilder();
+        List<String> commitIds = plainFilenamesIn(OBJ_DIR);
+        assert commitIds != null;
+        for (String filename : commitIds) {
+            Commit c = getCommitFromOBJ(filename);
+            assert c != null;
+            if (c.getMessage().contains(message)) { // 比 equals 更好用
+                str.append("===").append("\n").append(c.getID()).append("\n");
+            }
+        }
+        if (str.length() == 0) {
+            exitFile("Found no commit with that message.");
+        }
+        System.out.println(str.toString());
     }
 
 
+    /**
+     * java gitlet.Main status
+     */
+
+    public static void status() {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    /**
+//     *  取得 OBJ_DIR
+//     *          |——twoFile
+//     *          |     |——<commitId>
+//     */
+//    private static File getTwoC(String commitId) {
+//        return join(OBJ_DIR, twoCommitId(commitId), commitId);
+//    }
+
+    // 删除
 //    private static Commit readCommit(File f) {
 //        if (!f.exists()) {
 //            return null;
@@ -325,7 +371,6 @@ public class Repository {
 //    }
 //
 //    private static void writeCommit(Commit commit) {
-//        File f = getTwoC(commit.getID());
 //        writeObject(f, commit);
 //    }
 
@@ -379,13 +424,13 @@ public class Repository {
 
     private static Commit getCommitFromBranchFile(File file) {
         String commitID = readContentsAsString(file);
-        File commit = getTwoC(commitID);
+        File commit = join(OBJ_DIR, commitID);
         return readObject(commit, Commit.class);
     }
 
-    private static String twoCommitId(String s) {
-        return sha1(s).substring(0, 2);
-    }
+//    private static String twoCommitId(String s) {
+//        return sha1(s).substring(0, 2);
+//    }
 
 
     private static void exitFile(String s) {
