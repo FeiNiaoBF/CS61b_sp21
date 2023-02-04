@@ -10,40 +10,39 @@ import static gitlet.Utils.*;
 import static gitlet.StageRepo.*;
 import static gitlet.Commit.*;
 
-
-
-/** Represents a gitlet repository.
- *  does at a high level.
+/**
+ * Represents a gitlet repository.
+ * does at a high level.
  * <p>
  *
- *        .gitlet:
- *            |--objects*
- *            |     |--commit and blob
- *            |--refs*
- *            |     |--heads
- *            |          |--master
- *            |--HEAD
- *            |--stage*
- *            |--removestage*
- *            |...
+ * .gitlet:
+ * |--objects*
+ * | |--commit and blob
+ * |--refs*
+ * | |--heads
+ * | |--master
+ * |--HEAD
+ * |--stage*
+ * |--removestage*
+ * |...
  * <p>
  *
- *  1.objects
- *          ———— 存放每一个commit and 每一份文件的映射blob
- *  2.refs
- *          ———— 存放和分支
- *  3.HEAD
- *          ———— 存放当前commit指针的地址
- *  4.stage
- *          ———— 为暂存区
- *  5.removestage
- *          ———— 删除文件的地方
- *  6.addstage
- *          ———— 为暂存区文件夹
+ * 1.objects
+ * ———— 存放每一个commit and 每一份文件的映射blob
+ * 2.refs
+ * ———— 存放和分支
+ * 3.HEAD
+ * ———— 存放当前commit指针的地址
+ * 4.stage
+ * ———— 为暂存区
+ * 5.removestage
+ * ———— 删除文件的地方
+ * 6.addstage
+ * ———— 为暂存区文件夹
  * <p>
  *
  *
- *  @author Yeelight
+ * @author Yeelight
  */
 public class Repository {
     /**
@@ -70,23 +69,28 @@ public class Repository {
     /** The object dire in .gitlet. */
     public static final File OBJ_DIR = join(GITLET_DIR, "object");
     /** The refs dire in .gitlet. */
-    public static  final File REFS_DIR = join(GITLET_DIR, "refs");
-    /** The HEAD  in .gitlet. */
-    public static  final File HEAD = join(GITLET_DIR, "HEAD");
+    public static final File REFS_DIR = join(GITLET_DIR, "refs");
+    /** The HEAD in .gitlet. */
+    public static final File HEAD = join(GITLET_DIR, "HEAD");
     /** The stage dire. */
-    public static  final File STAGE_DIR = join(GITLET_DIR, "stageadd");
-    public static  final File STAGE = join(GITLET_DIR, "stage");
-    public static  final File REMOVES_DIR = join(GITLET_DIR, "remove");
+    public static final File STAGE_DIR = join(GITLET_DIR, "stageadd");
+    public static final File STAGE = join(GITLET_DIR, "stage");
+    public static final File REMOVES_DIR = join(GITLET_DIR, "remove");
 
     /**
-     *  |  ======================================================================================= |
-     *  |  ======================================================================================= |
-     *  |  ======================================================================================= |
+     * |
+     * =======================================================================================
+     * |
+     * |
+     * =======================================================================================
+     * |
+     * |
+     * =======================================================================================
+     * |
      */
 
-
     /**
-     *  java gitlet.Main init
+     * java gitlet.Main init
      */
     public static void init() {
         if (validateFileDire(GITLET_DIR)) {
@@ -105,34 +109,32 @@ public class Repository {
         String IDC = initCommit.getID();
         createBranch("heads", IDC);
         // update HEAD
-        writeContents(HEAD, HEAD_BRANCH_REF_PREFIX + DEFAULT_BRANCH_NAME );
+        writeContents(HEAD, HEAD_BRANCH_REF_PREFIX + DEFAULT_BRANCH_NAME);
     }
 
     /**
      * initial commit
      * <p>
-     *  .gitlet:
-     *   ...
-     *   |--objects
-     *   |     |--commit and blob
-     *   ...
+     * .gitlet:
+     * ...
+     * |--objects
+     * | |--commit and blob
+     * ...
      */
     private static void createInitialCommit(Commit commit) {
-        String fileID = twoCommitId(commit.getID());
-        File commitID = join(OBJ_DIR, fileID);
-        commitID.mkdir();
-        writeObject(join(commitID, commit.getID()), commit);
+        File commitID = join(OBJ_DIR, commit.getID());
+        writeObject(commitID, Commit.class);
     }
 
     /**
-     *  create branch: master
-     *  .gitlet:
-     *   ...
-     *    |--refs
-     *    |    |--heads
-     *    |          |--master
-     *    |          |  ....
-     *   ...
+     * create branch: master
+     * .gitlet:
+     * ...
+     * |--refs
+     * | |--heads
+     * | |--master
+     * | | ....
+     * ...
      *
      */
     private static void createBranch(String name, String id) {
@@ -147,25 +149,25 @@ public class Repository {
     }
 
     public static void validateInit() {
-        if (!validateFileDire(GITLET_DIR) && !validateFileDire(OBJ_DIR) && !validateFileDire(REFS_DIR) && !validateFileDire(REMOVES_DIR)) {
+        if (!validateFileDire(GITLET_DIR) && !validateFileDire(OBJ_DIR) && !validateFileDire(REFS_DIR)
+                && !validateFileDire(REMOVES_DIR)) {
             exitFile("A Gitlet version-control system already exists in the current directory");
         }
     }
 
-
     /**
-     *   java gitlet.Main add <FILENAME>
+     * java gitlet.Main add <FILENAME>
      */
 
     /**
      * 1.Adds a copy of the file as it currently exists to the staging area
      * 2.将需要 add 的文件以 blob 的形式存入 staging 中；
-     *   如果 file 和当前 commit 中跟踪的文件相同（ blob 的 id 相同），则不将其添加到 staging 中；
+     * 如果 file 和当前 commit 中跟踪的文件相同（ blob 的 id 相同），则不将其添加到 staging 中；
      *
      *
      */
     public static void add(String filename) {
-        //如果要添加的文件不存在
+        // 如果要添加的文件不存在
         File file = join(CWD, filename);
         if (!file.exists()) {
             exitFile("File does not exist.");
@@ -208,7 +210,7 @@ public class Repository {
     }
 
     /**
-     *  java gitlet.Main commit <message>
+     * java gitlet.Main commit <message>
      *
      */
 
@@ -236,11 +238,10 @@ public class Repository {
         writeContents(braFile, c.getID());
         // 清除缓存区
 
-
     }
 
     /**
-     *  java gitlet.Main rm <FILENAME>
+     * java gitlet.Main rm <FILENAME>
      *
      */
 
@@ -268,19 +269,17 @@ public class Repository {
         writeStage(stage);
     }
 
-
-
     /**
-     *  java gitlet.Main log
+     * java gitlet.Main log
      *
      */
 
     public static void log() {
         Commit head = getHeadCommit();
         StringBuilder logs = new StringBuilder();
-        while(head != null) {
+        while (head != null) {
             logs.append(head.toString());
-            head = getOldCommit(head.oldId());
+            head = getCommitFromOBJ(head.oldId());
         }
         System.out.println(logs);
     }
@@ -291,14 +290,17 @@ public class Repository {
     public static void globalLog() {
         StringBuilder gLogs = new StringBuilder();
         List<String> commitIds = plainFilenamesIn(OBJ_DIR);
-
+        assert commitIds != null;
+        for (String filename : commitIds) {
+            Commit commit = getCommitFromOBJ(filename);
+            assert commit != null;
+            gLogs.append(commit.toString());
+        }
+        System.out.println(gLogs);
     }
 
-
-
-
-    private static Commit getOldCommit(String commitId) {
-        File file = getTwoC(commitId);
+    private static Commit getCommitFromOBJ(String commitId) {
+        File file = join(OBJ_DIR, commitId);
         // 如果commit不存在
         if (commitId.equals("") || !file.exists()) {
             return null;
@@ -307,28 +309,47 @@ public class Repository {
     }
 
     /**
-     *  取得 OBJ_DIR
-     *          |——twoFile
-     *          |     |——<commitId>
+     * java gitlet.Main find
      */
-    private static File getTwoC(String commitId) {
-        return join(OBJ_DIR, twoCommitId(commitId), commitId);
+
+    public static void find(String target) {
+        StringBuilder str = new StringBuilder();
+        List<String> commitId = plainFilenamesIn(OBJ_DIR);
+        assert commitId != null;
+        for (String filename : commitId) {
+            Commit commit = getCommitFromOBJ(filename);
+            assert commit != null;
+            if (commit.getMessage().contains(target)) {
+                str.append("===").append("\n").append(commit.getID()).append("\n");
+            }
+        }
+        if (str.length() == 0) {
+            exitFile("Found no commit with that message.");
+        }
+        System.out.println(str);
     }
 
+    // /**
+    // * 取得 OBJ_DIR
+    // * |——twoFile
+    // * | |——<commitId>
+    // */
+    // private static File getTwoC(String commitId) {
+    // return join(OBJ_DIR, twoCommitId(commitId), commitId);
+    // }
 
-//    private static Commit readCommit(File f) {
-//        if (!f.exists()) {
-//            return null;
-//        }
-//
-//        return readObject(f, Commit.class);
-//    }
-//
-//    private static void writeCommit(Commit commit) {
-//        File f = getTwoC(commit.getID());
-//        writeObject(f, commit);
-//    }
-
+    // private static Commit readCommit(File f) {
+    // if (!f.exists()) {
+    // return null;
+    // }
+    //
+    // return readObject(f, Commit.class);
+    // }
+    //
+    // private static void writeCommit(Commit commit) {
+    // File f = getTwoC(commit.getID());
+    // writeObject(f, commit);
+    // }
 
     // 找到当前commit
     private static Commit getHeadCommit() {
@@ -348,16 +369,16 @@ public class Repository {
         return StageRepo.readStage();
     }
 
-//    private static void clearStage(Commit c, StageRepo stag) {
-//        File[] files = STAGE_DIR.listFiles();
-//        if (files == null) {
-//            return;
-//        }
-//        Blob blob = c.getBlob();
-//        stag.
-//
-//
-//    }
+    // private static void clearStage(Commit c, StageRepo stag) {
+    // File[] files = STAGE_DIR.listFiles();
+    // if (files == null) {
+    // return;
+    // }
+    // Blob blob = c.getBlob();
+    // stag.
+    //
+    //
+    // }
 
     private static String getBranch() {
         return readContentsAsString(HEAD);
@@ -379,14 +400,8 @@ public class Repository {
 
     private static Commit getCommitFromBranchFile(File file) {
         String commitID = readContentsAsString(file);
-        File commit = getTwoC(commitID);
-        return readObject(commit, Commit.class);
+        return getCommitFromOBJ(commitID);
     }
-
-    private static String twoCommitId(String s) {
-        return sha1(s).substring(0, 2);
-    }
-
 
     private static void exitFile(String s) {
         System.out.println(s);

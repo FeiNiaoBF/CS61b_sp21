@@ -8,7 +8,7 @@ import static gitlet.Repository.*;
 public class Main {
 
     /** Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ... 
+     *  <COMMAND> <OPERAND1> <OPERAND2> ...
      */
     public static void main(String[] args) {
         String firstArg = args[0];
@@ -27,6 +27,7 @@ public class Main {
             case "commit":
                 // java gitlet.Main commit <message>
                 validateNumArgs(args, 2);
+                Repository.validateInit();
                 String message = args[1];
                 if (message.length() == 0) {
                     System.out.println("Please enter a commit message.");
@@ -36,11 +37,23 @@ public class Main {
                 break;
             case "rm":
                 validateNumArgs(args, 2);
+                Repository.validateInit();
                 Repository.rm(args[1]);
                 break;
             case "log":
                 validateNumArgs(args, 1);
+                Repository.validateInit();
                 Repository.log();
+                break;
+            case "global-log":
+                validateNumArgs(args, 1);
+                Repository.validateInit();
+                Repository.globalLog();
+                break;
+            case "find":
+                validateNumArgs(args, 2);
+                Repository.validateInit();
+                Repository.find(args[1]);
                 break;
         }
     }
