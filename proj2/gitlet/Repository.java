@@ -1,49 +1,44 @@
 package gitlet;
 
-import com.sun.java.accessibility.util.GUIInitializedListener;
-
-import java.io.*;
-import java.nio.file.Path;
+import java.io.File;
 import java.util.List;
 
+import static gitlet.StageRepo.writeStage;
 import static gitlet.Utils.*;
-import static gitlet.StageRepo.*;
-import static gitlet.Commit.*;
 
 
-
-/** Represents a gitlet repository.
- *  does at a high level.
+/**
+ * Represents a gitlet repository.
+ * does at a high level.
+ * <p>
+ * <p>
+ * .gitlet:
+ * |--objects*
+ * |     |--commit and blob
+ * |--refs*
+ * |     |--heads
+ * |          |--master
+ * |--HEAD
+ * |--stage*
+ * |--removestage*
+ * |...
+ * <p>
+ * <p>
+ * 1.objects
+ * ———— 存放每一个commit and 每一份文件的映射blob
+ * 2.refs
+ * ———— 存放和分支
+ * 3.HEAD
+ * ———— 存放当前commit指针的地址
+ * 4.stage
+ * ———— 为暂存区
+ * 5.removestage
+ * ———— 删除文件的地方
+ * 6.addstage
+ * ———— 为暂存区文件夹
  * <p>
  *
- *        .gitlet:
- *            |--objects*
- *            |     |--commit and blob
- *            |--refs*
- *            |     |--heads
- *            |          |--master
- *            |--HEAD
- *            |--stage*
- *            |--removestage*
- *            |...
- * <p>
- *
- *  1.objects
- *          ———— 存放每一个commit and 每一份文件的映射blob
- *  2.refs
- *          ———— 存放和分支
- *  3.HEAD
- *          ———— 存放当前commit指针的地址
- *  4.stage
- *          ———— 为暂存区
- *  5.removestage
- *          ———— 删除文件的地方
- *  6.addstage
- *          ———— 为暂存区文件夹
- * <p>
- *
- *
- *  @author Yeelight
+ * @author Yeelight
  */
 public class Repository {
     /**
@@ -63,20 +58,32 @@ public class Repository {
      */
     private static final String HEAD_BRANCH_REF_PREFIX = "ref: refs/heads/";
 
-    /** The current working directory. */
+    /**
+     * The current working directory.
+     */
     public static final File CWD = new File(System.getProperty("user.dir"));
-    /** The .gitlet directory. */
+    /**
+     * The .gitlet directory.
+     */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    /** The object dire in .gitlet. */
+    /**
+     * The object dire in .gitlet.
+     */
     public static final File OBJ_DIR = join(GITLET_DIR, "object");
-    /** The refs dire in .gitlet. */
-    public static  final File REFS_DIR = join(GITLET_DIR, "refs");
-    /** The HEAD  in .gitlet. */
-    public static  final File HEAD = join(GITLET_DIR, "HEAD");
-    /** The stage dire. */
-    public static  final File STAGE_DIR = join(GITLET_DIR, "stageadd");
-    public static  final File STAGE = join(GITLET_DIR, "stage");
-    public static  final File REMOVES_DIR = join(GITLET_DIR, "remove");
+    /**
+     * The refs dire in .gitlet.
+     */
+    public static final File REFS_DIR = join(GITLET_DIR, "refs");
+    /**
+     * The HEAD  in .gitlet.
+     */
+    public static final File HEAD = join(GITLET_DIR, "HEAD");
+    /**
+     * The stage dire.
+     */
+    public static final File STAGE_DIR = join(GITLET_DIR, "stageadd");
+    public static final File STAGE = join(GITLET_DIR, "stage");
+    public static final File REMOVES_DIR = join(GITLET_DIR, "remove");
 
     /**
      *  |  ======================================================================================= |
@@ -86,10 +93,10 @@ public class Repository {
 
 
     /**
-     *  java gitlet.Main init
+     * java gitlet.Main init
      */
     public static void init() {
-        if (validateFileDire(GITLET_DIR)) {
+        if (validateFileDire()) {
             exitFile("A Gitlet version-control system already exists in the current directory.");
         }
         // create directories
@@ -102,51 +109,56 @@ public class Repository {
         // create initial commit
         Commit initCommit = new Commit();
         createInitialCommit(initCommit);
-        String IDC = initCommit.getID();
-        createBranch("heads", IDC);
-        // update HEAD
-        writeContents(HEAD, HEAD_BRANCH_REF_PREFIX + DEFAULT_BRANCH_NAME );
+        String IDC = initCommit.getID(); // 记录此时分支的commit
+        createFirstBranch("heads", IDC); // 存入heads dire
+        // update HEAD    Lab git --> ref: refs/heads/[branch]
+        writeContents(HEAD, HEAD_BRANCH_REF_PREFIX + DEFAULT_BRANCH_NAME);
     }
 
     /**
      * initial commit
      * <p>
-     *  .gitlet:
-     *   ...
-     *   |--objects
-     *   |     |--commit and blob
-     *   ...
+     * .gitlet:
+     * ...
+     * |--objects
+     * |     |--commit and blob
+     * ...
      */
     private static void createInitialCommit(Commit commit) {
-        File commitID = join(OBJ_DIR, commit.getID());
+        File commitID = join(OBJ_DIR, commit.getID()); // create commitId of file;
         writeObject(commitID, commit);
     }
 
     /**
-     *  create branch: master
-     *  .gitlet:
-     *   ...
-     *    |--refs
-     *    |    |--heads
-     *    |          |--master
-     *    |          |  ....
-     *   ...
-     *
+     * create branch: master
+     * .gitlet:
+     * ...
+     * |--refs
+     * |    |--heads
+     * |          |--master
+     * |          |  ....
+     * ...
      */
-    private static void createBranch(String name, String id) {
+    private static void createFirstBranch(String name, String id) {
         File Branch = join(REFS_DIR, name);
         Branch.mkdir();
         File branchName = join(Branch, DEFAULT_BRANCH_NAME);
         writeContents(branchName, id);
     }
 
-    private static boolean validateFileDire(File f) {
-        return f.exists() && f.isDirectory();
+    private static boolean validateFileDire() {
+        return Repository.GITLET_DIR.exists() && Repository.GITLET_DIR.isDirectory();
     }
 
     public static void validateInit() {
-        if (!validateFileDire(GITLET_DIR) && !validateFileDire(OBJ_DIR) && !validateFileDire(REFS_DIR) && !validateFileDire(REMOVES_DIR)) {
+        if (validateFileDire()) {
             exitFile("A Gitlet version-control system already exists in the current directory.");
+        }
+    }
+
+    public static void validateUnit() {
+        if (!validateFileDire()) {
+            exitFile("Not in an initialized Gitlet directory.");
         }
     }
 
@@ -158,56 +170,49 @@ public class Repository {
     /**
      * 1.Adds a copy of the file as it currently exists to the staging area
      * 2.将需要 add 的文件以 blob 的形式存入 staging 中；
-     *   如果 file 和当前 commit 中跟踪的文件相同（ blob 的 id 相同），则不将其添加到 staging 中；
-     *
-     *
+     * 如果 file 和当前 commit 中跟踪的文件相同（ blob 的 id 相同），则不将其添加到 staging 中；
      */
     public static void add(String filename) {
+        File file = join(CWD, filename);  // 从本地文件夹里面找
         //如果要添加的文件不存在
-        File file = join(CWD, filename);
         if (!file.exists()) {
             exitFile("File does not exist.");
         }
         // 读入要存入缓存区的文件将其成为Blob
         Blob b = new Blob(file);
         String blobId = b.getId();
-        // 判断 commit和 stag area 里面是否有文件
+        // 判断 当前commit和 stagarea 里面是否有文件
         Commit head = getHeadCommit();
         StageRepo stag = getStage();
         // 将 Commit & stage里面的文件id找出来
         String headId = head.getBlob().getOrDefault(filename, "");
         String stagFileId = stag.getAddBlob().getOrDefault(filename, "");
         /**
-         * 该文件的当前工作版本(stageadd)与当前提交中的版本(commit)相同时，不要将其添加到暂存区，
-         * 如果它已经存在，则将其从暂存区中删除。
+         *
+         * 1. 文件没有add到暂存区里面
+         * 2. 文件已经在暂存区里面了，但本地的文件更新了也要add（并且把旧的文件删除）
+         * 3. 文件已经在当前跟踪的commit节点里面，则比较文件内容是否与上一次提交的版本相同
+         *
          */
-        // commit 里面有没有该文件
         if (blobId.equals(headId)) {
-            // 有，不需要 add in stage
+            // 如果 Blob 与当前的 head 相同，则说明文件没有被修改过，只需要将它从暂存区移除即可
             if (!blobId.equals(stagFileId)) {
-                // 从 stage 里面删除文件
+                stag.setRemovBlob(filename, blobId);
                 join(STAGE_DIR, stagFileId).delete();
-                stag.getAddBlob().remove(stagFileId);
-                stag.getRemovBlob().remove(filename);
-                StageRepo.writeStage(stag);
+                writeStage(stag);
             }
-            // 没有
-        } else if (!blobId.equals(stagFileId)) {
-            // update staging
-            // delete original, add the new version
-            if (!stagFileId.equals("")) {
+        } else if (!blobId.equals(stagFileId)) { // 文件内容不同或者文件未在暂存区中
+            if (!stagFileId.equals("")) {   // 文件在暂存区中，删除旧版本
                 join(STAGE_DIR, stagFileId).delete();
             }
-            writeObject(join(STAGE_DIR, blobId), b);
-            // change stage added files
-            stag.addFile(filename, blobId);
-            StageRepo.writeStage(stag);
+            writeObject(join(STAGE_DIR, blobId), b); // 将新版本的文件存储到暂存区
+            stag.addFile(filename, blobId);   // 将新版本的文件加入到 Stage 中
+            writeStage(stag);
         }
     }
 
     /**
-     *  java gitlet.Main commit <message>
-     *
+     * java gitlet.Main commit <message>
      */
 
     public static void commit(String message) {
@@ -229,17 +234,15 @@ public class Repository {
         // 将commit存入commits文件夹中.
         createInitialCommit(c);
         // 让当前branch指向新的commit.
-        String braName = getBranch();
+        String braName = getBranchPath();
         File braFile = getBranchFile(braName);
         writeContents(braFile, c.getID());
         // 清除缓存区
-
-
+        stage.clear();
     }
 
     /**
-     *  java gitlet.Main rm <FILENAME>
-     *
+     * java gitlet.Main rm <FILENAME>
      */
 
     public static void rm(String filename) {
@@ -257,7 +260,7 @@ public class Repository {
         }
         // 如果文件在 add 区域，则将其中缓存区删除；
         if (!stagFileId.equals("")) {
-            stage.getAddBlob().remove(filename, blobId);
+            stage.setRemovBlob(filename, blobId);
         }
         // 如果文件被当前commit跟踪，则将其存入stage for removal区域.
         if (headId.equals(blobId)) {
@@ -267,16 +270,14 @@ public class Repository {
     }
 
 
-
     /**
-     *  java gitlet.Main log
-     *
+     * java gitlet.Main log
      */
 
     public static void log() {
         Commit head = getHeadCommit();
         StringBuilder logs = new StringBuilder();
-        while(head != null) {
+        while (head != null) {
             logs.append(head.toString());
             head = getCommitFromOBJ(head.oldId());
         }
@@ -334,84 +335,105 @@ public class Repository {
      */
 
     public static void status() {
-
+        String info = statusInfo();
+        System.out.println(info);
     }
 
+    private static String statusInfo() {
+        StringBuilder Info = new StringBuilder();
+        // === Branches ===
+        Info.append(statusBranches()).append("\n");
+        // === Staged Files ===
+        Info.append(statusStaged()).append("\n");
+        // === Removed Files ===
+        Info.append(statusRemoved()).append("\n");
+        // === Modifications Not Staged For Commit ===
+        Info.append("=== Modifications Not Staged For Commit ===").append("\n");
+        // === Untracked Files ===
+        Info.append("=== Untracked Files ===").append("\n");
 
+        return Info.toString();
+    }
 
+    private static String statusBranches() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Branches ===").append("\n");
+        List<String> branches = plainFilenamesIn(headDir());
+        assert branches != null;
+        for (String bra : branches) {
+            if (bra.equals(mianBranches())) {
+                sb.append("*").append(bra).append("\n");
+            } else {
+                sb.append(bra).append("\n");
+            }
+        }
+        return sb.toString();
+    }
 
+    private static File headDir() {
+        String headBra = getBranchPath();
+        File file = null;
+        String[] tmp = headBra.split(": ", 2);
+        String[] braDir = tmp[1].split("/");
+        if (braDir.length >= 2) {
+            file = join(GITLET_DIR, braDir[0], braDir[1]);
+        }
+        return file;
+    }
 
+    private static String mianBranches() {
+        // 找到当前的分支。
+        String headBra = getBranchPath();
+        // 分支所对应的文件。
+        File branchFile = getBranchFile(headBra);
+        return branchFile.getName();
+    }
 
+    private static String statusStaged() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Staged Files ===").append("\n");
+        StageRepo stage = getStage();
+        String[] stageFile = stage.getAddBlob().keySet().toArray(new String[0]);
+        for (String sta : stageFile) {
+            sb.append(sta).append("\n");
+        }
+        return sb.toString();
+    }
 
-
-
-
-
-
-
-
-
-
-//    /**
-//     *  取得 OBJ_DIR
-//     *          |——twoFile
-//     *          |     |——<commitId>
-//     */
-//    private static File getTwoC(String commitId) {
-//        return join(OBJ_DIR, twoCommitId(commitId), commitId);
-//    }
-
-    // 删除
-//    private static Commit readCommit(File f) {
-//        if (!f.exists()) {
-//            return null;
-//        }
-//
-//        return readObject(f, Commit.class);
-//    }
-//
-//    private static void writeCommit(Commit commit) {
-//        writeObject(f, commit);
-//    }
+    private static String statusRemoved() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Removed Files ===").append("\n");
+        StageRepo stageRepo = getStage();
+        String[] stageRemFile = stageRepo.getRemovBlob().toArray(new String[0]);
+        for (String remFile : stageRemFile) {
+            sb.append(remFile).append("\n");
+        }
+        return sb.toString();
+    }
 
 
     // 找到当前commit
     private static Commit getHeadCommit() {
         // 找到当前的分支。
-        String headBra = getBranch();
+        String headBra = getBranchPath();
         // 分支所对应的文件。
         File branchFile = getBranchFile(headBra);
         // 根据文件找到此时 commit.
-        Commit head = getCommitFromBranchFile(branchFile);
-        if (head == null) {
-            exitFile("No Commit!");
-        }
-        return head;
+        return getCommitFromBranchFile(branchFile);
     }
 
     private static StageRepo getStage() {
         return StageRepo.readStage();
     }
 
-//    private static void clearStage(Commit c, StageRepo stag) {
-//        File[] files = STAGE_DIR.listFiles();
-//        if (files == null) {
-//            return;
-//        }
-//        Blob blob = c.getBlob();
-//        stag.
-//
-//
-//    }
-
-    private static String getBranch() {
+    private static String getBranchPath() {
         return readContentsAsString(HEAD);
     }
 
-    private static File getBranchFile(String fileName) {
+    private static File getBranchFile(String branchPath) {
         // refs
         File file = null;
-        String[] tmp = fileName.split(": ", 2);
+        String[] tmp = branchPath.split(": ", 2);
         String[] branches = tmp[1].split("/");
         if (branches.length == 2) {
             file = join(GITLET_DIR, branches[0], branches[1]);

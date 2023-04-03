@@ -35,8 +35,8 @@ public class Commit implements Serializable {
 
 
     public Commit() {
-        this.message = "Initial commit";
-        this.timestamp = new Date(0);
+        this.message = "Initial commit";  // first commit
+        this.timestamp = new Date(0); // Thursday, 1 January 1970
         this.parents = new LinkedList<>();
         this.idsha = getIDSHA("0");
         this.blob = new HashMap<>();
@@ -103,6 +103,7 @@ public class Commit implements Serializable {
     }
 
     // commit 的一段完整信息
+    @Override
     public String toString() {
         StringBuilder logString = new StringBuilder();
         logString.append("===").append("\n");

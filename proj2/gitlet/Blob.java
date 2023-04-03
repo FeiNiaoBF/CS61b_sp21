@@ -38,7 +38,7 @@ public class Blob implements Serializable {
         this.filePath = goalFile.getPath(); // 绝对路径
         this.fileName = goalFile.getName();
         this.bytes = readContents(goalFile);
-        this.id = sha1(filePath, bytes);
+        this.id = sha1(filePath, bytes, fileName);
     }
 
     public String getId() {

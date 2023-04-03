@@ -31,9 +31,13 @@ public class StageRepo implements Serializable {
         return removBlob;
     }
 
-    public void addFile(String filename, String blobID) {
-        addBlob.put(filename, blobID);
-        removBlob.add(filename);
+    public void addFile(String fileName, String blobID) {
+        addBlob.put(fileName, blobID);
+    }
+
+    public void setRemovBlob(String fileName, String blobID) {
+        addBlob.remove(fileName, blobID);
+        removBlob.add(fileName);
     }
 
     public boolean isEmpty() {
