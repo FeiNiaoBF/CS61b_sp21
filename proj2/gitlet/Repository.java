@@ -11,7 +11,6 @@ import static gitlet.Utils.*;
  * Represents a gitlet repository.
  * does at a high level.
  * <p>
- * <p>
  * .gitlet:
  * |--objects*
  * |     |--commit and blob
@@ -22,7 +21,6 @@ import static gitlet.Utils.*;
  * |--stage*
  * |--removestage*
  * |...
- * <p>
  * <p>
  * 1.objects
  * ———— 存放每一个commit and 每一份文件的映射blob
@@ -47,16 +45,6 @@ public class Repository {
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
      */
-
-    /**
-     * Default branch name.
-     */
-    private static final String DEFAULT_BRANCH_NAME = "master";
-
-    /**
-     * HEAD ref prefix.
-     */
-    private static final String HEAD_BRANCH_REF_PREFIX = "ref: refs/heads/";
 
     /**
      * The current working directory.
@@ -84,13 +72,20 @@ public class Repository {
     public static final File STAGE_DIR = join(GITLET_DIR, "stageadd");
     public static final File STAGE = join(GITLET_DIR, "stage");
     public static final File REMOVES_DIR = join(GITLET_DIR, "remove");
+    /**
+     * Default branch name.
+     */
+    private static final String DEFAULT_BRANCH_NAME = "master";
+    /**
+     * HEAD ref prefix.
+     */
+    private static final String HEAD_BRANCH_REF_PREFIX = "ref: refs/heads/";
 
     /**
      *  |  ======================================================================================= |
      *  |  ======================================================================================= |
      *  |  ======================================================================================= |
      */
-
 
     /**
      * java gitlet.Main init
@@ -412,6 +407,68 @@ public class Repository {
     }
 
 
+    /**
+     * java gitlet.Main checkout
+     * - 1. java gitlet.Main checkout -- [file name]
+     * - 2. java gitlet.Main checkout [commit id] -- [file name]
+     * - 3. java gitlet.Main checkout [branch name]
+     */
+
+    public static void checkoutFromFile(String filename) {
+        Commit head = getHeadCommit();
+        String blob = head.getBlob().getOrDefault(filename, "");
+        checkoutfileFromBolbId(blob);
+
+    }
+
+    public static void checkoutFromFile(Commit commitId, String filename) {
+        if (commitId.equals("")) {
+            exitFile("No commit with that id exists.");
+        }
+        String blob = commitId.getBlob().getOrDefault(filename, "");
+        checkoutfileFromBolbId(blob);
+    }
+
+    public static void checkoutFromBranch(String branchName) {
+        if (!hasBranchName(branchName)) {
+            exitFile("No such branch exists.");
+        }
+        String head = getBranchPath();
+        File branchFile = getBranchFile(head);
+        String branchFileName = branchFile.getName();
+        if (branchFileName.equals(branchName)) {
+            exitFile("No need to checkout the current branch.");
+        }
+
+        Commit commit = getCommitFromBranchFile(branchFile);
+
+
+    }
+
+    private static void checkoutfileFromBolbId(String blobId) {
+        if (blobId.equals("")) {
+            exitFile("File does not exist in that commit.");
+        }
+        Blob blob = getBlobFromId(blobId);
+        checkoutFromBlob(blob);
+    }
+
+    private static Blob getBlobFromId(String blobId) {
+        File file = join(STAGE_DIR, blobId);
+        return readObject(file, Blob.class);
+    }
+
+    private static void checkoutFromBlob(Blob blob) {
+        File file = join(CWD, blob.getFileName());
+        writeContents(file, blob.getBytes());
+    }
+
+
+    /**
+     * java gitlet.Main branch
+     */
+
+
     // 找到当前commit
     private static Commit getHeadCommit() {
         // 找到当前的分支。
@@ -443,6 +500,23 @@ public class Repository {
         }
         return file;
     }
+
+    private static List<String> getAllBranch() {
+        List<String> branches = plainFilenamesIn(headDir());
+        return branches;
+    }
+
+    private static boolean hasBranchName(String branchName) {
+        List<String> branchs = getAllBranch();
+        boolean b = branchName.equals("");
+        for (String bra : branchs) {
+            if (!bra.equals(branchName) || b) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     private static Commit getCommitFromBranchFile(File file) {
         String commitID = readContentsAsString(file);
