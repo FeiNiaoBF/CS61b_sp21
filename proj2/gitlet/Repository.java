@@ -104,8 +104,8 @@ public class Repository {
         // create initial commit
         Commit initCommit = new Commit();
         createInitialCommit(initCommit);
-        String IDC = initCommit.getID(); // 记录此时分支的commit
-        createFirstBranch("heads", IDC); // 存入heads dire
+        String Idc = initCommit.getID(); // 记录此时分支的commit
+        createFirstBranch("heads", Idc); // 存入heads dire
         // update HEAD    Lab git --> ref: refs/heads/[branch]
         writeContents(HEAD, HEAD_BRANCH_REF_PREFIX + DEFAULT_BRANCH_NAME);
     }
@@ -135,9 +135,9 @@ public class Repository {
      * ...
      */
     private static void createFirstBranch(String name, String id) {
-        File Branch = join(REFS_DIR, name);
-        Branch.mkdir();
-        File branchName = join(Branch, DEFAULT_BRANCH_NAME);
+        File branch = join(REFS_DIR, name);
+        branch.mkdir();
+        File branchName = join(branch, DEFAULT_BRANCH_NAME);
         writeContents(branchName, id);
     }
 
@@ -335,19 +335,19 @@ public class Repository {
     }
 
     private static String statusInfo() {
-        StringBuilder Info = new StringBuilder();
+        StringBuilder info = new StringBuilder();
         // === Branches ===
-        Info.append(statusBranches()).append("\n");
+        info.append(statusBranches()).append("\n");
         // === Staged Files ===
-        Info.append(statusStaged()).append("\n");
+        info.append(statusStaged()).append("\n");
         // === Removed Files ===
-        Info.append(statusRemoved()).append("\n");
+        info.append(statusRemoved()).append("\n");
         // === Modifications Not Staged For Commit ===
-        Info.append("=== Modifications Not Staged For Commit ===").append("\n");
+        info.append("=== Modifications Not Staged For Commit ===").append("\n");
         // === Untracked Files ===
-        Info.append("=== Untracked Files ===").append("\n");
+        info.append("=== Untracked Files ===").append("\n");
 
-        return Info.toString();
+        return info.toString();
     }
 
     private static String statusBranches() {

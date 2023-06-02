@@ -1,12 +1,12 @@
 package gitlet;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import static gitlet.Repository.*;
-import static gitlet.Utils.*;
+import static gitlet.Repository.STAGE;
+import static gitlet.Utils.readObject;
+import static gitlet.Utils.writeObject;
 
 /**
  * Represents the staging area.
@@ -21,6 +21,14 @@ public class StageRepo implements Serializable {
     public StageRepo() {
         this.addBlob = new HashMap<>();
         this.removBlob = new HashSet<>();
+    }
+
+    public static void writeStage(StageRepo s) {
+        writeObject(STAGE, s);
+    }
+
+    public static StageRepo readStage() {
+        return readObject(STAGE, StageRepo.class);
     }
 
     public HashMap<String, String> getAddBlob() {
@@ -47,15 +55,6 @@ public class StageRepo implements Serializable {
     public void clear() {
         addBlob.clear();
         removBlob.clear();
-    }
-
-
-    public static void writeStage(StageRepo s) {
-        writeObject(STAGE, s);
-    }
-
-    public static StageRepo readStage() {
-        return readObject(STAGE, StageRepo.class);
     }
 
 }

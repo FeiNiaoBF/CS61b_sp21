@@ -1,19 +1,17 @@
 package gitlet;
 
-// TODO: any imports you need here
-
-import java.io.File;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static gitlet.Utils.*;
+import static gitlet.Utils.sha1;
 
-/** Represents a gitlet commit object.
- *  does at a high level.
+/**
+ * Represents a gitlet commit object.
+ * does at a high level.
  *
- *  @author Yeelight
+ * @author Yeelight
  */
 public class Commit implements Serializable {
     /**
@@ -22,15 +20,25 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    /** The message of this Commit. */
+    /**
+     * The message of this Commit.
+     */
     private String message;
-    /** The timestamp of this Commit. */
+    /**
+     * The timestamp of this Commit.
+     */
     private Date timestamp;
-    /** The parents commit. */
+    /**
+     * The parents commit.
+     */
     private List<String> parents;
-    /** The commit ID. */
+    /**
+     * The commit ID.
+     */
     private String idsha;
-    /** The blob files Map with file path as key and SHA1 id as value. */
+    /**
+     * The blob files Map with file path as key and SHA1 id as value.
+     */
     private HashMap<String, String> blob;
 
 
@@ -65,12 +73,13 @@ public class Commit implements Serializable {
     }
 
     /**
-     *  From:
-     *  https://zhuanlan.zhihu.com/p/533852291#:~:text=(0)%3B-,%E6%AD%A4,-%E5%A4%84%E7%94%9F%E6%88%90%E7%9A%84
+     * From:
+     * https://zhuanlan.zhihu.com/p/533852291#:~:text=(0)%3B-,%E6%AD%A4,-%E5%A4%84%E7%94%9F%E6%88%90%E7%9A%84
      */
     private String getIDSHA() {
         return getIDSHA(this.blob.toString());
     }
+
     private String getIDSHA(String s) {
         return sha1(getDateFormat(), message, parents.toString(), s);
     }
@@ -127,10 +136,6 @@ public class Commit implements Serializable {
         }
         return parents.get(0);
     }
-
-
-
-
 
 
 }
