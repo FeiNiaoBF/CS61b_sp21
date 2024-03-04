@@ -1,5 +1,7 @@
 package gitlet;
 
+import gitlet.GitletException;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -26,7 +28,7 @@ import java.util.List;
  *
  *  @author P. N. Hilfinger
  */
-class Utils {
+public class Utils {
 
     /** The length of a complete SHA-1 UID as a hexadecimal numeral. */
     static final int UID_LENGTH = 40;
@@ -35,7 +37,7 @@ class Utils {
 
     /** Returns the SHA-1 hash of the concatenation of VALS, which may
      *  be any mixture of byte arrays and Strings. */
-    static String sha1(Object... vals) {
+    public static String sha1(Object... vals) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
             for (Object val : vals) {
@@ -93,7 +95,7 @@ class Utils {
     /** Return the entire contents of FILE as a byte array.  FILE must
      *  be a normal file.  Throws IllegalArgumentException
      *  in case of problems. */
-    static byte[] readContents(File file) {
+    public static byte[] readContents(File file) {
         if (!file.isFile()) {
             throw new IllegalArgumentException("must be a normal file");
         }
@@ -107,7 +109,7 @@ class Utils {
     /** Return the entire contents of FILE as a String.  FILE must
      *  be a normal file.  Throws IllegalArgumentException
      *  in case of problems. */
-    static String readContentsAsString(File file) {
+    public static String readContentsAsString(File file) {
         return new String(readContents(file), StandardCharsets.UTF_8);
     }
 
@@ -115,7 +117,7 @@ class Utils {
      *  creating or overwriting it as needed.  Each object in CONTENTS may be
      *  either a String or a byte array.  Throws IllegalArgumentException
      *  in case of problems. */
-    static void writeContents(File file, Object... contents) {
+    public static void writeContents(File file, Object... contents) {
         try {
             if (file.isDirectory()) {
                 throw
@@ -138,7 +140,7 @@ class Utils {
 
     /** Return an object of type T read from FILE, casting it to EXPECTEDCLASS.
      *  Throws IllegalArgumentException in case of problems. */
-    static <T extends Serializable> T readObject(File file,
+    public static <T extends Serializable> T readObject(File file,
                                                  Class<T> expectedClass) {
         try {
             ObjectInputStream in =
@@ -153,7 +155,7 @@ class Utils {
     }
 
     /** Write OBJ to FILE. */
-    static void writeObject(File file, Serializable obj) {
+    public static void writeObject(File file, Serializable obj) {
         writeContents(file, serialize(obj));
     }
 
@@ -171,7 +173,7 @@ class Utils {
     /** Returns a list of the names of all plain files in the directory DIR, in
      *  lexicographic order as Java Strings.  Returns null if DIR does
      *  not denote a directory. */
-    static List<String> plainFilenamesIn(File dir) {
+    public static List<String> plainFilenamesIn(File dir) {
         String[] files = dir.list(PLAIN_FILES);
         if (files == null) {
             return null;
@@ -193,14 +195,14 @@ class Utils {
     /** Return the concatentation of FIRST and OTHERS into a File designator,
      *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
      *  method. */
-    static File join(String first, String... others) {
+    public static File join(String first, String... others) {
         return Paths.get(first, others).toFile();
     }
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
      *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}
      *  method. */
-    static File join(File first, String... others) {
+    public static File join(File first, String... others) {
         return Paths.get(first.getPath(), others).toFile();
     }
 

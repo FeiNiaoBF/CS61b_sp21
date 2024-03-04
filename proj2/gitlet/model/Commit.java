@@ -1,4 +1,4 @@
-package gitlet;
+package gitlet.model;
 
 // TODO: any imports you need here
 
@@ -37,25 +37,28 @@ public class Commit implements Serializable {
     private HashMap<String, String> blob;
 
 
+    // Initial Commit
     public Commit() {
         this.message = "Initial commit";
         this.timestamp = new Date(0);
         this.parents = new ArrayList<>();
-        this.idsha = getIDSHA();
+        this.idsha = getIDSHA1();
         this.blob = new HashMap<>();
+        this.file = null;
     }
 
     public Commit(String message, Date time, String Id, List<String> parents) {
         this.message = message;
         this.timestamp = time;
-
+        this.idsha = Id;
+        this.parents = parents;
     }
 
     /**
      *  From:
      *  https://zhuanlan.zhihu.com/p/533852291#:~:text=(0)%3B-,%E6%AD%A4,-%E5%A4%84%E7%94%9F%E6%88%90%E7%9A%84
      */
-    private String getIDSHA() {
+    private String getIDSHA1() {
         return sha1(getDateFormat(), message, parents.toString());
     }
 
